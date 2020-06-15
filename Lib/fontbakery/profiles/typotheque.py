@@ -1,12 +1,13 @@
 # ------------------------------------------
-# WIP Profile
-# CURRENTLY IN AN EARLY EXPERIMENTATION PHASE
+# WIP Profile - basically a "hello world" file
+
+# comments ending with ? are where Stephen Nixon is unsure of their absolute accuracy
+
 # Following instructions & code, with slightly modifications, from
 # https://font-bakery.readthedocs.io/en/stable/developer/writing-profiles.html
 # ------------------------------------------
 
 # We are going to define checks and conditons
-from fontbakery.profiles.universal import UNIVERSAL_PROFILE_CHECKS
 from fontbakery.callable import check, condition
 # All possible statuses a check can yield, in order of
 # severity. The least severe being DEBUG. The most severe
@@ -23,6 +24,9 @@ from fontbakery.checkrunner import (DEBUG, PASS,
 from fontbakery.fonts_profile import profile_factory # NOQA pylint: disable=unused-import
 from fontbakery.checkrunner import Section
 
+# needed to import universal checks
+from fontbakery.profiles.universal import UNIVERSAL_PROFILE_CHECKS
+
 # At this point we already have a importable profile
 # It needs some checks though, to be useful.
 
@@ -31,17 +35,19 @@ from fontbakery.checkrunner import Section
 # for this example, containing checks for the accordingly
 # named tables
 
+# also needed to import universal checks?
 profile_imports = ('fontbakery.profiles.universal',)
+
+# seems to be needed to mark this as a profile?
 profile = profile_factory(default_section=Section("Typotheque"))
 
-# profile.auto_register(globals()) # copied from adobefonts profile; trying to "register" checks?
-
 # putting this at the top of the file
-# can give a guick overview:
+# can give a guick overview of checks below:
 TYPOTHEQUE_CHECK_IDS = [
     'com.typotheque/check/hello',
 ]
 
+# the "Expected" check list can concatenate lists of checks in this profile and other imported ones
 EXPECTED_CHECK_IDS = \
     UNIVERSAL_PROFILE_CHECKS + \
     TYPOTHEQUE_CHECK_IDS
@@ -83,7 +89,9 @@ def hello_world():
   yield PASS, 'Hello World'
 
 
+# necessary to register checks that are imported from other profiles (e.g. universal checks)
 profile.auto_register(globals())
+
 # this must be at the end of the module,
 # after all checks were added:
 profile.test_expected_checks(EXPECTED_CHECK_IDS, exclusive=True)
