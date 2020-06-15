@@ -31,9 +31,9 @@ from fontbakery.fonts_profile import profile_factory # NOQA pylint: disable=unus
 
 # -------------------------------------------------------
 
-# profile_imports = [
-#     ['fontbakery.profiles', ['universal']]
-# ]
+profile_imports = [
+    ['fontbakery.profiles', ['universal']]
+]
 
 # -------------------------------------------------------
 
