@@ -30,23 +30,21 @@ from fontbakery.checkrunner import Section
 # for this example, containing checks for the accordingly
 # named tables
 
-profile_imports = ('fontbakery.profiles.universal',)
+# profile_imports = ('fontbakery.profiles.universal',)
 profile = profile_factory(default_section=Section("Typotheque"))
 
 
+# profile_imports = [
+#     ['fontbakery.profiles', ['universal']]
+# ]
 
-profile_imports = [
-    ['fontbakery.profiles', ['universal']]
-]
 
-
-profile.auto_register(globals()) # copied from adobefonts profile; trying to "register" checks?
+# profile.auto_register(globals()) # copied from adobefonts profile; trying to "register" checks?
 
 # putting this at the top of the file
 # can give a guick overview:
 expected_check_ids = (
-    'com.typotheque/examples/hello',
-    'com.typotheque/examples/ttf_has_glyphs',
+    'com.typotheque/check/hello',
 )
 
 # Now we picked some checks from other profiles, but
@@ -58,7 +56,7 @@ expected_check_ids = (
 # and mark it as a check.
 # A check id is mandatory and must be globally and timely
 # unique. See "Naming Things: check-ids" below.
-@check(id='com.typotheque/examples/hello')
+@check(id='com.typotheque/check/hello')
 # This check will run only once as it has no iterable
 # arguments. Since it has no arguments at all and because
 # checks should be idempotent (and this one is), there's
@@ -86,32 +84,7 @@ def hello_world():
   yield PASS, 'Hello World'
 
 
-
-
-# conditions are used for the dependency injection as arguments
-# and to decide if a check will be skipped
-@condition
-# ttFont is a condition built into FontProfile
-# it returns an instance of fontTools.TTLib.TTFont
-def is_ttf(ttFont):
-   return 'glyf' in ttFont
-   
-@check(
-    id='com.typotheque/examples/ttf_has_glyphs',
-    # this check will be skipped if the font is not a ttf
-    conditions=["is_ttf"]
-)
-# this also runs once per font in fonts, but its called with
-# the ttFont instance
-def has_ttf_glyphs(ttFont):
-  """ It's bad when there are no glyphs in the TTF."""
-  # savely use the "glyf" table, because of conditions="is_ttf"
-  # we know it's available
-  if not len(ttFont['glyf'].glyphs):
-    return FAIL, "There are no glyphs in this TTF."
-  return PASS, "Some gLyphs are in this TTF."
-
-
+profile.auto_register(globals())
 # this must be at the end of the module,
 # after all checks were added:
 profile.test_expected_checks(expected_check_ids, exclusive=True)
