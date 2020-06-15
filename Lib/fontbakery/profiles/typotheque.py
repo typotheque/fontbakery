@@ -20,6 +20,7 @@ from fontbakery.checkrunner import (DEBUG, PASS,
 # The comment at the end of the line disables flake8
 # and pylint to complain about unused imports.
 from fontbakery.fonts_profile import profile_factory # NOQA pylint: disable=unused-import
+from fontbakery.checkrunner import Section
 
 # At this point we already have a importable profile
 # It needs some checks though, to be useful.
@@ -29,19 +30,23 @@ from fontbakery.fonts_profile import profile_factory # NOQA pylint: disable=unus
 # for this example, containing checks for the accordingly
 # named tables
 
-# -------------------------------------------------------
+profile_imports = ('fontbakery.profiles.universal',)
+profile = profile_factory(default_section=Section("Typotheque"))
+
+
 
 profile_imports = [
     ['fontbakery.profiles', ['universal']]
 ]
 
-# -------------------------------------------------------
+
+profile.auto_register(globals()) # copied from adobefonts profile; trying to "register" checks?
 
 # putting this at the top of the file
 # can give a guick overview:
 expected_check_ids = (
     'com.typotheque/examples/hello',
-    'com.typotheque/examples/ttf_has_glyphs'
+    'com.typotheque/examples/ttf_has_glyphs',
 )
 
 # Now we picked some checks from other profiles, but
