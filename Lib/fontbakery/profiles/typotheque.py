@@ -6,6 +6,7 @@
 # ------------------------------------------
 
 # We are going to define checks and conditons
+from fontbakery.profiles.universal import UNIVERSAL_PROFILE_CHECKS
 from fontbakery.callable import check, condition
 # All possible statuses a check can yield, in order of
 # severity. The least severe being DEBUG. The most severe
@@ -30,22 +31,20 @@ from fontbakery.checkrunner import Section
 # for this example, containing checks for the accordingly
 # named tables
 
-# profile_imports = ('fontbakery.profiles.universal',)
+profile_imports = ('fontbakery.profiles.universal',)
 profile = profile_factory(default_section=Section("Typotheque"))
-
-
-# profile_imports = [
-#     ['fontbakery.profiles', ['universal']]
-# ]
-
 
 # profile.auto_register(globals()) # copied from adobefonts profile; trying to "register" checks?
 
 # putting this at the top of the file
 # can give a guick overview:
-expected_check_ids = (
+TYPOTHEQUE_CHECK_IDS = [
     'com.typotheque/check/hello',
-)
+]
+
+EXPECTED_CHECK_IDS = \
+    UNIVERSAL_PROFILE_CHECKS + \
+    TYPOTHEQUE_CHECK_IDS
 
 # Now we picked some checks from other profiles, but
 # what about defining checks ourselves.
@@ -87,4 +86,4 @@ def hello_world():
 profile.auto_register(globals())
 # this must be at the end of the module,
 # after all checks were added:
-profile.test_expected_checks(expected_check_ids, exclusive=True)
+profile.test_expected_checks(EXPECTED_CHECK_IDS, exclusive=True)
