@@ -24,4 +24,5 @@ fontbakery-check-results.md
 htmlcov
 _version.py
 venv
+fontbakery-venv
 docs/_build
