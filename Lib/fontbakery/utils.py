@@ -421,3 +421,62 @@ def filenames_ending_in(suffix, root):
     if os.path.isdir(fullpath):
       filenames.extend(filenames_ending_in(suffix, fullpath))
   return filenames
+
+from fontTools.pens.basePen import BasePen
+import math
+class ShortSegmentPen(BasePen):
+  """
+  A pen to find and report short segments in a glyph
+  Change the minimumSize of the segment to look for.
+  Run this after removing overlaps and decomposing.
+  
+  The result is a list of pairs of point locations, 
+  at the start and end of the short segment.
+
+  Using the pen with RoboFont, on a UFO:
+    f = CurrentFont()
+    g = f["A"]
+    pen = ShortSegmentPen(g, minimumSize=10)
+    g.draw(pen)
+    result = pen.shortSegments
+    print(result)
+
+  Using the pen with FontTools, on an OTF or TTF:
+    from fontTools.ttLib import TTFont
+    fontPath = "/Users/clymer/Library/Fonts/AudreeL1.otf"
+    font = TTFont(fontPath)
+    glyphset = font.getGlyphSet()
+    g = glyphset["A"]
+    pen = ShortSegmentPen(g, minimumSize=40)
+    g.draw(pen)
+    result = pen.shortSegments
+    print(result)
+  """
+  # from fontTools.misc.py23 import *
+
+  def __init__(self, glyphSet, minimumSize=10):
+    BasePen.__init__(self, glyphSet)
+    self.minimumSize = minimumSize
+    self._prevPt = None
+    self.shortSegments = []
+  
+  def _distance(self, pt1, pt2):
+    return math.sqrt((pt2[0] - pt1[0]) ** 2 + (pt2[1] - pt1[1]) ** 2)
+    
+  def _measureSegment(self, pt):
+    dist = self._distance(self._prevPt, pt)
+    if dist < self.minimumSize:
+      self.shortSegments.append((self._prevPt, pt))
+    self._prevPt = pt
+    
+  def _moveTo(self, pt):
+    self._prevPt = pt
+
+  def _lineTo(self, pt):
+    self._measureSegment(pt)
+
+  def _curveToOne(self, bcp1, bcp2, pt):
+    self._measureSegment(pt)
+
+  def _qCurveToOne(self, bcp, pt):
+    self._measureSegment(pt)

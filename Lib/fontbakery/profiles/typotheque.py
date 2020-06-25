@@ -24,6 +24,8 @@ from fontbakery.checkrunner import (DEBUG, PASS,
 from fontbakery.fonts_profile import profile_factory # NOQA pylint: disable=unused-import
 from fontbakery.checkrunner import Section
 
+# from ShortSegmentPen import *
+
 # needed to import universal checks
 from fontbakery.profiles.universal import UNIVERSAL_PROFILE_CHECKS
 
@@ -36,7 +38,7 @@ from fontbakery.profiles.universal import UNIVERSAL_PROFILE_CHECKS
 # named tables
 
 # also needed to import universal checks?
-profile_imports = ('fontbakery.profiles.universal',)
+# profile_imports = ('fontbakery.profiles.universal',)
 
 # seems to be needed to mark this as a profile?
 profile = profile_factory(default_section=Section("Typotheque"))
@@ -44,49 +46,56 @@ profile = profile_factory(default_section=Section("Typotheque"))
 # putting this at the top of the file
 # can give a guick overview of checks below:
 TYPOTHEQUE_CHECK_IDS = [
-    'com.typotheque/check/hello',
+    'com.typotheque/check/short-segments--otf_ttf',
 ]
 
 # the "Expected" check list can concatenate lists of checks in this profile and other imported ones
 EXPECTED_CHECK_IDS = \
-    UNIVERSAL_PROFILE_CHECKS + \
     TYPOTHEQUE_CHECK_IDS
+    # UNIVERSAL_PROFILE_CHECKS + \
 
-# Now we picked some checks from other profiles, but
-# what about defining checks ourselves.
+@check(id='com.typotheque/check/short-segments--otf_ttf')
 
+def short_segments_otf_ttf(ttFont):
+  """Report short segments in an OTF or TTF."""
 
-# We use `check` as a decorator to wrap an ordinary python
-# function into an instance of FontBakeryCheck to prepare
-# and mark it as a check.
-# A check id is mandatory and must be globally and timely
-# unique. See "Naming Things: check-ids" below.
-@check(id='com.typotheque/check/hello')
-# This check will run only once as it has no iterable
-# arguments. Since it has no arguments at all and because
-# checks should be idempotent (and this one is), there's
-# not much sense in having it all. It will run once
-# and always yield the same result.
-def hello_world():
-  """Simple "Hello World" example."""
-  # The function name of a check is not very important
-  # to create it, only to import it from another module
-  # or to call it directly, However, a short line of
-  # human readable description is mandatory, preferable
-  # via the docstring of the check.
-  
-  # A status of a check can be `return`ed or `yield`ed
-  # depending on the nature of the check, `return`
-  # can only return just one status while `yield`
-  # makes a generator out of it and it can produce
-  # many statuses.
-  # A status also always must be a tuple of (Status, Message)
-  # For `Message` a string is OK, but for unit testing
-  # it turned out that an instance of `fontbakery.message.Message`
-  # can be very useful. It can additionally provide
-  # a status code, better suited to figure out the exact
-  # check result.
-  yield PASS, 'Hello World'
+  # TODO: print results in a more-readable way
+  # TODO: decompose components and remove overlap before checking
+
+  from fontTools.pens.basePen import BasePen
+  from fontbakery.utils import ShortSegmentPen
+  import pprint
+
+  pp = pprint.PrettyPrinter(indent=4)
+
+  results= {}
+
+  glyphset = ttFont.getGlyphSet()
+
+  # set for minimum segment length, in units out of 1000 UPM
+  tooSmall = 2
+  # derive minSize for segment
+  minSize = ttFont['head'].unitsPerEm * (tooSmall / 1000)
+
+  for glyphName in glyphset.keys():
+    try:
+      glyph = glyphset[glyphName]
+      pen = ShortSegmentPen(glyph, minSize)
+      glyph.draw(pen)
+      result = pen.shortSegments
+      if len(result) > 0:
+        results[glyphName] = result
+
+    # TODO: find why some glyphs have a TypeError: '_TTGlyphGlyf' object is not subscriptable (it is probably due to non-decomposed components)
+    except TypeError:
+      continue
+
+  if len(results.keys()) > 0:
+      yield WARN, f"Font has glyphs with segments shorter than {minSize}"
+      for result in results.keys():
+
+          #TODO: is this the best way to print a list of issues?
+          yield INFO, f"{result}: {results[result]}"
 
 
 # necessary to register checks that are imported from other profiles (e.g. universal checks)
@@ -95,3 +104,5 @@ profile.auto_register(globals())
 # this must be at the end of the module,
 # after all checks were added:
 profile.test_expected_checks(EXPECTED_CHECK_IDS, exclusive=True)
+
+
